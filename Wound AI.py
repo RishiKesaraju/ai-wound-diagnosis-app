@@ -45,7 +45,7 @@ def get_wound(image_path, interpreter, class_labels):
     predicted_label = class_labels[predicted_index]
     
     # GPT-3.5 integration for initial wound diagnosis and treatment
-    client = OpenAI(api_key="sk-WLE7-aTF97mncGbMrSRT3-zpwYL4Ku7krKFicP5JlWT3BlbkFJyT1pRVjJm1D0SmJqY43b3rWInyibAR1dHZRT6q_eAA")
+    client = OpenAI(api_key="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")
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -58,7 +58,7 @@ def get_wound(image_path, interpreter, class_labels):
 
 # Function to interact with the chatbot
 def chat_with_bot(user_message):
-    client = OpenAI(api_key="sk-WLE7-aTF97mncGbMrSRT3-zpwYL4Ku7krKFicP5JlWT3BlbkFJyT1pRVjJm1D0SmJqY43b3rWInyibAR1dHZRT6q_eAA")
+    client = OpenAI(api_key="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")
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
