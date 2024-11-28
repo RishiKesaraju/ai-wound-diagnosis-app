@@ -6,25 +6,46 @@ import numpy as np
 from openai import OpenAI
 import pandas as pd
 
-# Load the labels and model (unchanged)
+# Load the labels from CSV
 labels_csv_path = "C:/Users/Rishi/Wound AI/labels.csv"
 labels_df = pd.read_csv(labels_csv_path)
 class_labels = labels_df['label'].unique()
-model_path = "C:/Users/Rishi/Wound AI/model_optimized.h5"
-model = tf.keras.models.load_model(model_path)
+
+# Load the TensorFlow Lite model
+tflite_model_path = "C:/Users/Rishi/Wound AI/model_optimized.tflite"
+
+# Function to load and allocate the TFLite model
+def load_tflite_model(model_path):
+    interpreter = tf.lite.Interpreter(model_path=model_path)
+    interpreter.allocate_tensors()
+    return interpreter
+
+interpreter = load_tflite_model(tflite_model_path)
+
+# Get input and output tensor details from the interpreter
+input_details = interpreter.get_input_details()
+output_details = interpreter.get_output_details()
 
 # Function to process the wound image and generate predictions
-def get_wound(image_path, model, class_labels):
+def get_wound(image_path, interpreter, class_labels):
     img = load_img(image_path, target_size=(224, 224))  # Resize the image to the required size
     img_array = img_to_array(img)
     img_array = np.expand_dims(img_array, axis=0)  # Add batch dimension
-    img_array /= 255.0  # Normalize the image if required
-    predictions = model.predict(img_array)
-    predicted_index = np.argmax(predictions[0])
+    img_array = img_array.astype(np.float32) / 255.0  # Normalize the image if required
+    
+    # Set the input tensor
+    interpreter.set_tensor(input_details[0]['index'], img_array)
+    
+    # Run inference
+    interpreter.invoke()
+    
+    # Get the predictions from the output tensor
+    predictions = interpreter.get_tensor(output_details[0]['index'])[0]
+    predicted_index = np.argmax(predictions)
     predicted_label = class_labels[predicted_index]
     
     # GPT-3.5 integration for initial wound diagnosis and treatment
-    client = OpenAI(api_key = "sk-WLE7-aTF97mncGbMrSRT3-zpwYL4Ku7krKFicP5JlWT3BlbkFJyT1pRVjJm1D0SmJqY43b3rWInyibAR1dHZRT6q_eAA")
+    client = OpenAI(api_key="sk-WLE7-aTF97mncGbMrSRT3-zpwYL4Ku7krKFicP5JlWT3BlbkFJyT1pRVjJm1D0SmJqY43b3rWInyibAR1dHZRT6q_eAA")
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -37,7 +58,7 @@ def get_wound(image_path, model, class_labels):
 
 # Function to interact with the chatbot
 def chat_with_bot(user_message):
-    client = OpenAI(api_key = "sk-WLE7-aTF97mncGbMrSRT3-zpwYL4Ku7krKFicP5JlWT3BlbkFJyT1pRVjJm1D0SmJqY43b3rWInyibAR1dHZRT6q_eAA")
+    client = OpenAI(api_key="sk-WLE7-aTF97mncGbMrSRT3-zpwYL4Ku7krKFicP5JlWT3BlbkFJyT1pRVjJm1D0SmJqY43b3rWInyibAR1dHZRT6q_eAA")
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
@@ -77,7 +98,7 @@ if tab == "Diagnosis":
             
             # Add spinner for loading indication
             with st.spinner("Processing image..."):
-                prediction, treatment = get_wound(image_path, model, class_labels)
+                prediction, treatment = get_wound(image_path, interpreter, class_labels)
 
             # Display results after processing
             st.success(f"**Diagnosis:** {prediction}")
@@ -100,7 +121,7 @@ elif tab == "About the Product":
 
     ### Technology Overview
     The app utilizes state-of-the-art AI technology:
-    - A deep learning model (VGG16 or similar) is used to analyze wound images and classify them into different types.
+    - A TensorFlow Lite model is used to analyze wound images and classify them into different types.
     - GPT-3.5, a powerful natural language processing model, generates tailored treatment suggestions based on the wound type. It offers recommendations on medical supplies and healing practices.
 
     ### How It Works
