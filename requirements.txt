@@ -41,7 +41,7 @@ numpy==1.26.4
 openai==1.45.0
 opt-einsum==3.3.0
 optree==0.12.1
-packaging==24.1
+packaging>=20.0,<24
 pandas==2.2.2
 pillow==10.4.0
 pio==0.0.3
