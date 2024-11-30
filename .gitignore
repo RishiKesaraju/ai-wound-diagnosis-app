@@ -1,4 +1,5 @@
-# Ignore virtual environment folder
-myenv/
-env/
 venv/
+__pycache__/
+*.pyc
+*.pyo
+.DS_Store
