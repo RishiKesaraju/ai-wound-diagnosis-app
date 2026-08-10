@@ -45,7 +45,7 @@ def get_wound(image_path, interpreter, class_labels):
     predicted_label = class_labels[predicted_index]
     
     # GPT-3.5 integration for initial wound diagnosis and treatment
-    client = OpenAI(api_key="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")
+    client = OpenAI(api_key="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")
     completion = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[
